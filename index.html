@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.country { fill: #cdd; }
+
+</style>
+<body>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 900,
+    height = 1000;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var projection = d3.geo.albers()
+  .center([0, 50])
+  .parallels([50, 60])
+  .scale(800)
+
+var path = d3.geo.path()
+  .projection(projection);
+
+d3.json("usa.json", function(usa) {
+
+  svg.append("path")
+      .datum(topojson.feature(usa, usa.objects.countries))
+      .attr("d", d3.geo.path().projection(projection))
+      .attr("class", "country");
+
+  svg.append("path")
+      .datum(topojson.feature(usa, usa.objects.cities))
+      .attr("d", path.pointRadius([3]))
+      .attr("class", "place");
+
+
+  svg.selectAll(".place-label")
+    .data(topojson.feature(usa, usa.objects.cities).features)
+    .enter().append("text")
+    .attr("class", "place-label")
+    .attr("transform", function(d) { return "translate(" + projection(d.geometry.coordinates) + ")"; })
+    .attr("dx", ".25em")
+    .text(function(d) { return d.properties.name; });
+
+    svg.insert("path", ".graticule")
+      .datum(topojson.feature(usa, usa.objects.states, function(a, b) { return a !== b; }))
+      .attr("class", "state-boundary")
+      .attr("d", path);
+});
+
+
+</script>
